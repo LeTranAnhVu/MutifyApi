@@ -1,3 +1,4 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -21,8 +22,12 @@ namespace Mutify
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<MutifyContext>( opt => opt.UseSqlServer(Configuration.GetConnectionString("MutifyContext")));
-            services.AddControllers();
+            services.AddAutoMapper(typeof(AutoMapConfig));
+            /**
+             * TODO Need to understand why should add lazy loading proxies can work as earger leading.
+            */
+            services.AddDbContext<MutifyContext>( opt => opt.UseLazyLoadingProxies().UseSqlServer(Configuration.GetConnectionString("MutifyContext")));
+            services.AddControllers().AddNewtonsoftJson(x => x.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Mutify", Version = "v1" });

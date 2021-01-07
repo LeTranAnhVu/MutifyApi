@@ -1,15 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace Mutify.Models
+namespace Mutify.Dtos
 {
-    public class Track
+    public class TrackDto
     {
-        public int Id { get; set; }
+        public int? Id { get; set; }
 
         [MaxLength(200)]
         public string Name { get; set; }
 
-        public virtual List<Genre> Genres { get; set; }
+        public List<int> Genres { get; set; }
     }
 }

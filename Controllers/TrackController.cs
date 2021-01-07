@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Mutify.Dtos;
 using Mutify.Models;
 
 namespace Mutify.Controllers
@@ -12,10 +15,12 @@ namespace Mutify.Controllers
     public class TrackController : ControllerBase
     {
         private readonly MutifyContext _context;
+        private readonly IMapper _mapper;
 
-        public TrackController(MutifyContext context)
+        public TrackController(MutifyContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         // GET
@@ -28,23 +33,31 @@ namespace Mutify.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Track>> GetOne(int id)
         {
+            // Track track = await _context.Tracks.FindAsync(id);
             Track track = await _context.Tracks.FindAsync(id);
             if (track == null)
             {
                 return NotFound();
             }
+            var genres = track.Genres;
 
-            return track;
+            return Ok(track);
         }
 
         [HttpPost]
-        public async Task<ActionResult<Track>> Post(Track trackDto)
+        public async Task<ActionResult<Track>> Post(TrackDto trackDto)
         {
-            _context.Tracks.Add(trackDto);
+            var genres = await _context.Genres.Where(genre => trackDto.Genres.Contains(genre.Id)).ToListAsync();
+            var track = new Track();
+            _mapper.Map(trackDto, track);
 
+            track.Genres = new List<Genre>();
+
+            track.Genres.AddRange(genres);
+            _context.Tracks.Add(track);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetOne), new {id = trackDto.Id}, trackDto);
+            return CreatedAtAction(nameof(GetOne), new {id = track.Id}, track);
         }
 
         [HttpPut("{id}")]
@@ -53,11 +66,6 @@ namespace Mutify.Controllers
             if (id != trackDto.Id)
             {
                 return BadRequest();
-            }
-            var track = await _context.Tracks.FindAsync(id);
-            if (track == null)
-            {
-                return NotFound();
             }
 
             _context.Entry(trackDto).State = EntityState.Modified;
@@ -68,7 +76,12 @@ namespace Mutify.Controllers
             }
             catch (DbUpdateException)
             {
-                return StatusCode(500);
+                if (!(await TrackExists(id)))
+                {
+                    return NotFound();
+                }
+
+                return BadRequest();
             }
         }
 
@@ -94,6 +107,13 @@ namespace Mutify.Controllers
             }
 
             return NoContent();
+        }
+
+
+
+        private async Task<bool> TrackExists(int id)
+        {
+            return await _context.Tracks.AnyAsync(track => track.Id == id);
         }
     }
 }
