@@ -1,5 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Linq.Expressions;
+using Mutify.Models;
 
 namespace Mutify.Dtos
 {
@@ -10,6 +14,19 @@ namespace Mutify.Dtos
         [MaxLength(200)]
         public string Name { get; set; }
 
-        public List<int> Genres { get; set; }
+        public List<Genre> Genres { get; set; }
+
+        public List<int>? GenreIds { get; set; }
+
+        public static Expression<Func<Track, TrackDto>> AsDto = track => new TrackDto
+        {
+            Id = track.Id,
+            Name = track.Name,
+            Genres = track.Genres.Select(ge => new Genre
+            {
+                Id = ge.Id,
+                Name = ge.Name
+            }).ToList()
+        };
     }
 }

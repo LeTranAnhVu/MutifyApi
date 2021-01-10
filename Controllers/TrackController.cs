@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
@@ -12,42 +13,39 @@ namespace Mutify.Controllers
 {
     [Route("api/tracks")]
     [ApiController]
-    public class TrackController : ControllerBase
+    public class TrackController : BaseController<Track, TrackDto>
     {
-        private readonly MutifyContext _context;
-        private readonly IMapper _mapper;
+        protected override Expression<Func<Track, TrackDto>> _asDto => TrackDto.AsDto;
+        protected override DbSet<Track> _dbSet => _context.Tracks;
 
-        public TrackController(MutifyContext context, IMapper mapper)
+        public TrackController(MutifyContext context, IMapper mapper): base(context, mapper)
         {
-            _context = context;
-            _mapper = mapper;
         }
 
         // GET
         [HttpGet]
-        public async Task<ActionResult<List<Track>>> Get()
+        public async Task<ActionResult<List<TrackDto>>> Get()
         {
-            return await _context.Tracks.ToListAsync();
+            return await _GetAll();
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Track>> GetOne(int id)
         {
-            // Track track = await _context.Tracks.FindAsync(id);
-            Track track = await _context.Tracks.FindAsync(id);
+            var track = await _GetOneById(id);
             if (track == null)
             {
                 return NotFound();
             }
-            var genres = track.Genres;
 
+            Console.WriteLine(track.Genres);
             return Ok(track);
         }
 
         [HttpPost]
         public async Task<ActionResult<Track>> Post(TrackDto trackDto)
         {
-            var genres = await _context.Genres.Where(genre => trackDto.Genres.Contains(genre.Id)).ToListAsync();
+            var genres = await _context.Genres.Where(genre => trackDto.GenreIds.Contains(genre.Id)).ToListAsync();
             var track = new Track();
             _mapper.Map(trackDto, track);
 
@@ -115,5 +113,7 @@ namespace Mutify.Controllers
         {
             return await _context.Tracks.AnyAsync(track => track.Id == id);
         }
+
+
     }
 }

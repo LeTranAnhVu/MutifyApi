@@ -9,6 +9,6 @@ namespace Mutify.Models
         [MaxLength(200)]
         public string Name { get; set; }
 
-        public virtual List<Track> Tracks { get; set; }
+        public List<Track> Tracks { get; set; }
     }
 }
