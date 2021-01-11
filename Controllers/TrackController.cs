@@ -12,7 +12,6 @@ using Mutify.Models;
 namespace Mutify.Controllers
 {
     [Route("api/tracks")]
-    [ApiController]
     public class TrackController : BaseController<Track, TrackDto>
     {
         protected override Expression<Func<Track, TrackDto>> _asDto => TrackDto.AsDto;

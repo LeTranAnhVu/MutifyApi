@@ -1,33 +1,36 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Mutify.Dtos;
 using Mutify.Models;
 
 namespace Mutify.Controllers
 {
     [Route("api/genres")]
-    [ApiController]
-    public class GenreController: ControllerBase
+    public class GenreController : BaseController<Genre, GenreDto>
     {
-        private readonly MutifyContext _context;
+        protected override DbSet<Genre> _dbSet => _context.Genres;
+        protected override Expression<Func<Genre, GenreDto>> _asDto => GenreDto.AsDto;
 
-        public GenreController(MutifyContext mutifyContext)
+        public GenreController(MutifyContext mutifyContext, IMapper mapper) : base(mutifyContext, mapper)
         {
-            _context = mutifyContext;
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<Genre>>> Get()
+        public async Task<ActionResult<List<GenreDto>>> Get()
         {
-            return await _context.Genres.ToListAsync();
+            return await _GetAll();
         }
 
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Genre>> GetOne(int id)
+        public async Task<ActionResult<GenreDto>> GetOne(int id)
         {
-            var genre = await _context.Genres.FindAsync(id);
+            var genre = await _GetOneById(id);
             if (genre == null)
             {
                 return NotFound();
@@ -37,11 +40,25 @@ namespace Mutify.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Genre>> Post(Genre dto)
+        public async Task<ActionResult<Genre>> Post(GenreDto dto)
         {
-            _context.Genres.Add(dto);
-            await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetOne), new {id = dto.Id}, dto);
+            var genre = new Genre();
+            _mapper.Map(dto, genre);
+            _context.Genres.Add(genre);
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+            {
+                return BadRequest("Unique Name");
+            }
+            catch
+            {
+                return BadRequest();
+            }
+
+            return CreatedAtAction(nameof(GetOne), new {id = genre.Id}, genre);
         }
 
 
@@ -59,6 +76,5 @@ namespace Mutify.Controllers
 
             return NoContent();
         }
-
     }
 }

@@ -10,6 +10,7 @@ using Mutify.Models;
 
 namespace Mutify.Controllers
 {
+    [ApiController]
     public abstract class BaseController<T, dtoT> : ControllerBase where T : PrimaryKeyModel where dtoT : class
 
     {
@@ -30,7 +31,7 @@ namespace Mutify.Controllers
         }
         protected async Task<dtoT> _GetOneById(int id)
         {
-            return await _dbSet.Where(entity => entity.Id == id).Select(_asDto).FirstAsync();
+            return await _dbSet.Where(entity => entity.Id == id).Select(_asDto).FirstOrDefaultAsync();
         }
     }
 }

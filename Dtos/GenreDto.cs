@@ -7,7 +7,7 @@ using Mutify.Models;
 
 namespace Mutify.Dtos
 {
-    public class TrackDto
+    public class GenreDto
     {
         public int? Id { get; set; }
 
@@ -15,19 +15,10 @@ namespace Mutify.Dtos
         [MaxLength(200)]
         public string Name { get; set; }
 
-        public List<Genre> Genres { get; set; }
-
-        public List<int>? GenreIds { get; set; }
-
-        public static Expression<Func<Track, TrackDto>> AsDto = track => new TrackDto
+        public static Expression<Func<Genre, GenreDto>> AsDto = track => new GenreDto
         {
             Id = track.Id,
             Name = track.Name,
-            Genres = track.Genres.Select(ge => new Genre
-            {
-                Id = ge.Id,
-                Name = ge.Name
-            }).ToList()
         };
     }
 }
