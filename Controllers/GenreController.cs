@@ -45,19 +45,7 @@ namespace Mutify.Controllers
             var genre = new Genre();
             _mapper.Map(dto, genre);
             _context.Genres.Add(genre);
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateException ex)
-            {
-                return BadRequest("Unique Name");
-            }
-            catch
-            {
-                return BadRequest();
-            }
-
+            await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(GetOne), new {id = genre.Id}, genre);
         }
 

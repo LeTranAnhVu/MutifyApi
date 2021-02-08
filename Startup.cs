@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using Mutify.Middlewares;
 using Mutify.Models;
 
 namespace Mutify
@@ -25,9 +26,6 @@ namespace Mutify
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddAutoMapper(typeof(AutoMapConfig));
-            /**
-             * TODO Need to understand why should add lazy loading proxies can work as earger leading.
-            */
             services.AddDbContext<MutifyContext>(
                 opt =>
                     opt .UseSqlServer(Configuration.GetConnectionString("MutifyContext"))
@@ -49,7 +47,11 @@ namespace Mutify
         {
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
+                app.UseExceptionHandler(new ExceptionHandlerOptions
+                {
+                    ExceptionHandler = new ErrorHandlerMiddleware().Invoke
+                });
+
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Mutify v1"));
             }
@@ -61,6 +63,8 @@ namespace Mutify
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+
+
         }
     }
 }

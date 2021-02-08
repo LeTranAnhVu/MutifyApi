@@ -14,7 +14,6 @@ namespace Mutify.Models
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Genre>().HasIndex(g => new {g.Name}).IsUnique();
-            // modelBuilder.Entity<Track>().HasMany(track => track.Genres).WithMany(genre => genre.Tracks);
         }
     }
 }
