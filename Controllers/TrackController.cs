@@ -1,9 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Security.Cryptography;
+using System.Security.Permissions;
+using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Mutify.Dtos;
@@ -17,7 +22,7 @@ namespace Mutify.Controllers
         protected override Expression<Func<Track, TrackDto>> _asDto => TrackDto.AsDto;
         protected override DbSet<Track> _dbSet => _context.Tracks;
 
-        public TrackController(MutifyContext context, IMapper mapper): base(context, mapper)
+        public TrackController(MutifyContext context, IMapper mapper) : base(context, mapper)
         {
         }
 
@@ -106,13 +111,57 @@ namespace Mutify.Controllers
             return NoContent();
         }
 
+        #region Audio
 
+        [HttpPost("{trackId}/upload-audio")]
+        public async Task<ActionResult<Track>> UploadAudio(IFormFile file, int trackId)
+        {
+            var contentType = file.ContentType;
+            var name = file.FileName;
+            var size = file.Length;
+            var now = (DateTimeOffset) DateTime.UtcNow;
+            var timestamp = now.ToString("yyyyMMddHHmmssfff");
+
+            var byteFileName = Encoding.UTF8.GetBytes(name + timestamp);
+            var md5 = new HMACMD5();
+            var hash = md5.ComputeHash(byteFileName);
+            var hashFileName = BitConverter.ToString(hash).Replace("-", "").ToLower() + ".mp3";
+            var path = @"C:\Users\BrianLe\Downloads";
+            try
+            {
+                using (var stream = new MemoryStream())
+                {
+                    await file.CopyToAsync(stream);
+                    stream.Position = 0;
+                    var bytes = new byte[stream.Length];
+
+                    var content256Hash = BitConverter.ToString(SHA256.HashData(bytes)).Replace("-", "").ToLower();
+
+                    await stream.ReadAsync(bytes);
+
+                    using (var writer = new BinaryWriter(System.IO.File.Create(Path.Join(path, hashFileName))))
+                    {
+                        writer.Write(bytes);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+
+            return Ok(new
+            {
+                Message = "Upload success"
+            });
+        }
+
+        #endregion
 
         private async Task<bool> TrackExists(int id)
         {
             return await _context.Tracks.AnyAsync(track => track.Id == id);
         }
-
-
     }
 }
