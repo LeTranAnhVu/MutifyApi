@@ -46,8 +46,8 @@ namespace Mutify
         private void CheckAndGenerateFolders()
         {
             var root = Constants.RootPath;
-            var resourcePath = Path.Join(root, Constants.Resource.ResourceFolder);
-            var audioPath = Path.Join(resourcePath, Constants.Resource.AudioFolder);
+            var resourcePath = Path.Combine(root, Constants.Resource.ResourceFolder);
+            var audioPath = Path.Combine(resourcePath, Constants.Resource.AudioFolder);
 
             if (!Directory.Exists(resourcePath))
             {

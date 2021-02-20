@@ -4,14 +4,15 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Security.Cryptography;
-using System.Security.Permissions;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MimeTypes;
 using Mutify.Dtos;
+using Mutify.Helpers;
 using Mutify.Models;
 
 namespace Mutify.Controllers
@@ -126,9 +127,7 @@ namespace Mutify.Controllers
             var md5 = new HMACMD5();
             var hash = md5.ComputeHash(byteFileName);
             var hashFileName = BitConverter.ToString(hash).Replace("-", "").ToLower() + ".mp3";
-            var root = Constants.RootPath;
-            var resourcePath = Path.Join(root, Constants.Resource.ResourceFolder);
-            var audioPath = Path.Join(resourcePath, Constants.Resource.AudioFolder);
+            var audioPath = PathHelper.GetAudioPath();
             try
             {
                 using (var stream = new MemoryStream())
@@ -142,7 +141,7 @@ namespace Mutify.Controllers
                     await stream.ReadAsync(bytes);
 
                     using (var writer =
-                        new BinaryWriter(System.IO.File.Create(Path.Join(audioPath, hashFileName))))
+                        new BinaryWriter(System.IO.File.Create(Path.Combine(audioPath, hashFileName))))
                     {
                         writer.Write(bytes);
                     }
@@ -158,6 +157,31 @@ namespace Mutify.Controllers
             {
                 Message = "Upload success"
             });
+        }
+
+        [HttpGet("{trackId}/download-audio/{audioId}")]
+        public async Task<ActionResult> DownloadAudio(int trackId, int audioId)
+        {
+            var name = "52e48bb41d7b21e348d284172fbc6468.mp3";
+            var names = name.Split('.');
+            var ext = names[names.Length - 1];
+            var audioPath = PathHelper.GetAudioPath();
+            var filePath = Path.Combine(audioPath, name);
+            if (!System.IO.File.Exists(filePath))
+            {
+                return NotFound();
+            }
+
+            var memStream = new MemoryStream();
+            using (var file = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+            {
+                await file.CopyToAsync(memStream);
+                memStream.Position = 0;
+
+                return File(memStream, MimeTypeMap.GetMimeType(ext));
+            }
+
+            return Ok();
         }
 
         #endregion
