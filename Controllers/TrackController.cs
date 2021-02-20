@@ -43,7 +43,6 @@ namespace Mutify.Controllers
                 return NotFound();
             }
 
-            Console.WriteLine(track.Genres);
             return Ok(track);
         }
 
@@ -60,7 +59,7 @@ namespace Mutify.Controllers
             _context.Tracks.Add(track);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetOne), new {id = track.Id}, track);
+            return CreatedAtAction(nameof(GetOne), new {id = track.Id},  await _GetOneById(track.Id));
         }
 
         [HttpPut("{id}")]

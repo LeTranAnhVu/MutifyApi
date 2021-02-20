@@ -10,6 +10,7 @@ namespace Mutify.Models
 
         public DbSet<Track> Tracks { get; set; }
         public DbSet<Genre> Genres { get; set; }
+        public DbSet<BlobFile> BlobFiles { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
