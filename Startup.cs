@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -42,6 +43,27 @@ namespace Mutify
             services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo {Title = "Mutify", Version = "v1"}); });
         }
 
+        private void CheckAndGenerateFolders()
+        {
+            var root = Constants.RootPath;
+            var resourcePath = Path.Join(root, Constants.Resource.ResourceFolder);
+            var audioPath = Path.Join(resourcePath, Constants.Resource.AudioFolder);
+
+            if (!Directory.Exists(resourcePath))
+            {
+                Console.WriteLine($"Generate {Constants.Resource.ResourceFolder} folder");
+                Directory.CreateDirectory(resourcePath);
+            }
+
+            if (!Directory.Exists(audioPath))
+            {
+                Console.WriteLine($"Generate {Constants.Resource.AudioFolder} folder");
+                Directory.CreateDirectory(audioPath);
+            }
+
+            Console.WriteLine("Generated folders done!");
+        }
+
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
@@ -64,6 +86,7 @@ namespace Mutify
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
 
+            CheckAndGenerateFolders();
 
         }
     }

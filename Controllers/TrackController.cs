@@ -126,7 +126,9 @@ namespace Mutify.Controllers
             var md5 = new HMACMD5();
             var hash = md5.ComputeHash(byteFileName);
             var hashFileName = BitConverter.ToString(hash).Replace("-", "").ToLower() + ".mp3";
-            var path = @"C:\Users\BrianLe\Downloads";
+            var root = Constants.RootPath;
+            var resourcePath = Path.Join(root, Constants.Resource.ResourceFolder);
+            var audioPath = Path.Join(resourcePath, Constants.Resource.AudioFolder);
             try
             {
                 using (var stream = new MemoryStream())
@@ -139,7 +141,8 @@ namespace Mutify.Controllers
 
                     await stream.ReadAsync(bytes);
 
-                    using (var writer = new BinaryWriter(System.IO.File.Create(Path.Join(path, hashFileName))))
+                    using (var writer =
+                        new BinaryWriter(System.IO.File.Create(Path.Join(audioPath, hashFileName))))
                     {
                         writer.Write(bytes);
                     }
