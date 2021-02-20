@@ -6,8 +6,7 @@ namespace Mutify.Models
 {
     public class Track : BaseModel
     {
-        [Required]
-        [MaxLength(200)]
+        [Required] [MaxLength(200)]
         public string Name { get; set; }
         public int? BlobFileId { get; set; }
 

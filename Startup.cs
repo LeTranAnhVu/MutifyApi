@@ -27,10 +27,18 @@ namespace Mutify
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddAutoMapper(typeof(AutoMapConfig));
+            // sql server
+            // services.AddDbContext<MutifyContext>(
+            //     opt =>
+            //         opt.UseSqlServer(Configuration.GetConnectionString("MutifyContextSqlServer"))
+            //             // .UseLazyLoadingProxies()
+            //             .LogTo(Console.WriteLine, LogLevel.Information)
+            // );
+
+            // postgres
             services.AddDbContext<MutifyContext>(
                 opt =>
-                    opt .UseSqlServer(Configuration.GetConnectionString("MutifyContext"))
-                        // .UseLazyLoadingProxies()
+                    opt.UseNpgsql(Configuration.GetConnectionString("MutifyContextPostgresql"))
                         .LogTo(Console.WriteLine, LogLevel.Information)
             );
 
