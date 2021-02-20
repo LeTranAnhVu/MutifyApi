@@ -10,6 +10,7 @@ namespace Mutify
         public AutoMapConfig()
         {
             CreateMap<TrackDto, Track>().ForMember(dto => dto.Genres, opt => opt.Ignore());
+            CreateMap<TrackDto, Track>().ForMember(dto => dto.BlobFileId, opt => opt.Ignore());
             CreateMap<GenreDto, Genre>().ForMember(dto => dto.Tracks, opt => opt.Ignore());
         }
     }
