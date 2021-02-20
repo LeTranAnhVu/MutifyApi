@@ -10,6 +10,10 @@ namespace Mutify.Models
         public string Hash { get; set; }
 
         [Required]
+        [MaxLength(400)]
+        public string DisplayName { get; set; }
+
+        [Required]
         [MaxLength(200)]
         public string Name { get; set; }
 

@@ -59,7 +59,7 @@ namespace Mutify.Controllers
             _context.Tracks.Add(track);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetOne), new {id = track.Id},  await _GetOneById(track.Id));
+            return CreatedAtAction(nameof(GetOne), new {id = track.Id}, await _GetOneById(track.Id));
         }
 
         [HttpPut("{id}")]
@@ -116,11 +116,19 @@ namespace Mutify.Controllers
         [HttpPost("{trackId}/upload-audio")]
         public async Task<ActionResult<Track>> UploadAudio(IFormFile file, int trackId)
         {
+            var track = await _context.Tracks.FindAsync(trackId);
+
+            if (track == null)
+            {
+                return NotFound("Cannot found track Id");
+            }
+
             var contentType = file.ContentType;
             var name = file.FileName;
             var size = file.Length;
             var now = (DateTimeOffset) DateTime.UtcNow;
             var timestamp = now.ToString("yyyyMMddHHmmssfff");
+            var content256Hash = "";
 
             var byteFileName = Encoding.UTF8.GetBytes(name + timestamp);
             var md5 = new HMACMD5();
@@ -135,7 +143,7 @@ namespace Mutify.Controllers
                     stream.Position = 0;
                     var bytes = new byte[stream.Length];
 
-                    var content256Hash = BitConverter.ToString(SHA256.HashData(bytes)).Replace("-", "").ToLower();
+                    content256Hash = BitConverter.ToString(SHA256.HashData(bytes)).Replace("-", "").ToLower();
 
                     await stream.ReadAsync(bytes);
 
@@ -145,6 +153,37 @@ namespace Mutify.Controllers
                         writer.Write(bytes);
                     }
                 }
+
+                // Save file info
+                var blobFile = new BlobFile();
+                blobFile.Directory = Path.Combine(Constants.Resource.ResourceFolder, Constants.Resource.AudioFolder);
+                blobFile.Extension = "mp3";
+                blobFile.Hash = content256Hash;
+                blobFile.DisplayName = name;
+                blobFile.Name = hashFileName;
+                blobFile.Size = (ulong) size;
+
+                if (track.BlobFileId != null)
+                {
+                    var oldContent = await _context.BlobFiles.FindAsync(track.BlobFileId);
+                    if (oldContent != null)
+                    {
+                        // Remove file in file system
+                        var filePath = Path.Combine(Constants.RootPath, oldContent.Directory, oldContent.Name);
+                        if (System.IO.File.Exists(filePath))
+                        {
+                            System.IO.File.Delete(filePath);
+                        }
+
+                    }
+
+                    _context.BlobFiles.Remove(oldContent);
+                }
+
+                // Add blob file to track
+                track.Content = blobFile;
+
+                await _context.SaveChangesAsync();
             }
             catch (Exception ex)
             {
@@ -158,29 +197,50 @@ namespace Mutify.Controllers
             });
         }
 
-        [HttpGet("{trackId}/download-audio/{audioId}")]
+        [HttpGet("{trackId}/download-audio")]
         public async Task<ActionResult> DownloadAudio(int trackId, int audioId)
         {
-            var name = "52e48bb41d7b21e348d284172fbc6468.mp3";
-            var names = name.Split('.');
-            var ext = names[names.Length - 1];
+            var track = await _context.Tracks.FindAsync(trackId);
+
+            if (track == null)
+            {
+                return NotFound("Cannot found track Id");
+            }
+
+            if (track.BlobFileId == null)
+            {
+                return NotFound("Cannot found audio content");
+            }
+
+            var blobFile = await _context.BlobFiles.FindAsync(track.BlobFileId);
+            if (blobFile == null)
+            {
+                return NotFound("Cannot found audio content");
+            }
+
+            var ext = blobFile.Extension;
             var audioPath = PathHelper.GetAudioPath();
-            var filePath = Path.Combine(audioPath, name);
+            var filePath = Path.Combine(audioPath, blobFile.Name);
             if (!System.IO.File.Exists(filePath))
             {
-                return NotFound();
+                return NotFound("Cannot found audio content");
             }
 
-            var memStream = new MemoryStream();
-            using (var file = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+            try
             {
-                await file.CopyToAsync(memStream);
-                memStream.Position = 0;
+                var memStream = new MemoryStream();
+                using (var file = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+                {
+                    await file.CopyToAsync(memStream);
+                    memStream.Position = 0;
 
-                return File(memStream, MimeTypeMap.GetMimeType(ext));
+                    return File(memStream, MimeTypeMap.GetMimeType(ext));
+                }
             }
-
-            return Ok();
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
 
         #endregion
