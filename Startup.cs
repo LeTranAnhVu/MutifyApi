@@ -26,6 +26,11 @@ namespace Mutify
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors(o => o.AddDefaultPolicy(builder =>
+            {
+                builder.AllowAnyOrigin().AllowAnyMethod();
+            }));
+
             services.AddAutoMapper(typeof(AutoMapConfig));
             services.AddDbContext<MutifyContext>(
                 opt =>
@@ -69,6 +74,7 @@ namespace Mutify
         {
             if (env.IsDevelopment())
             {
+                app.UseCors();
                 app.UseExceptionHandler(new ExceptionHandlerOptions
                 {
                     ExceptionHandler = new ErrorHandlerMiddleware().Invoke
