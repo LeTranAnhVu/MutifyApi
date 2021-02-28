@@ -27,11 +27,26 @@ namespace Mutify.Controllers
         {
         }
 
+        private string _mapUrl(int trackId = -1)
+        {
+            var domain = _getDomain();
+            var partialUrl = Url.Action("DownloadAudio", new {trackId});
+            return Path.Join(domain, partialUrl);
+        }
+
         // GET
         [HttpGet]
         public async Task<ActionResult<List<TrackDto>>> Get()
         {
-            return await _GetAll();
+            var trackDataList = await _GetAll();
+            trackDataList.ForEach(track =>
+            {
+                if (track.Id != null)
+                {
+                    track.Url = _mapUrl((int) track.Id);
+                }
+            });
+            return trackDataList;
         }
 
         [HttpGet("{id}")]
@@ -41,6 +56,11 @@ namespace Mutify.Controllers
             if (track == null)
             {
                 return NotFound();
+            }
+
+            if (track.Id != null)
+            {
+                track.Url = _mapUrl((int) track.Id);
             }
 
             return Ok(track);
@@ -174,7 +194,6 @@ namespace Mutify.Controllers
                         {
                             System.IO.File.Delete(filePath);
                         }
-
                     }
 
                     _context.BlobFiles.Remove(oldContent);
@@ -197,7 +216,7 @@ namespace Mutify.Controllers
             });
         }
 
-        [HttpGet("{trackId}/download-audio")]
+        [HttpGet("{trackId}/download-audio", Name = "DownloadAudio")]
         public async Task<ActionResult> DownloadAudio(int trackId, int audioId)
         {
             var track = await _context.Tracks.FindAsync(trackId);

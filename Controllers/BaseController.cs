@@ -25,6 +25,11 @@ namespace Mutify.Controllers
             _mapper = mapper;
         }
 
+        protected string _getDomain()
+        {
+            return $"{Request.Scheme}://{Request.Host}{Request.PathBase}";
+        }
+
         protected async Task<List<dtoT>> _GetAll()
         {
             return await _dbSet.Select(_asDto).ToListAsync();

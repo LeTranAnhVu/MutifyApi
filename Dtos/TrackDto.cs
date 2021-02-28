@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Linq.Expressions;
+using Microsoft.AspNetCore.Mvc.Routing;
 using Mutify.Models;
 
 namespace Mutify.Dtos
@@ -19,10 +20,13 @@ namespace Mutify.Dtos
 
         public List<int>? GenreIds { get; set; }
 
+        public string Url { get; set; }
+
         public static Expression<Func<Track, TrackDto>> AsDto = track => new TrackDto
         {
             Id = track.Id,
             Name = track.Name,
+            Url = "",
             Genres = track.Genres.Select(ge => new Genre
             {
                 Id = ge.Id,
