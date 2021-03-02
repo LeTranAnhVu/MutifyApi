@@ -27,8 +27,14 @@ namespace Mutify.Controllers
         {
         }
 
-        private string _mapUrl(int trackId = -1)
+        private async Task<string> _mapUrl(int trackId = -1)
         {
+            var track = await _context.Tracks.FindAsync(trackId);
+            if (track.BlobFileId == null)
+            {
+                return null;
+            }
+
             var domain = _getDomain();
             var partialUrl = Url.Action("DownloadAudio", new {trackId});
             return Path.Join(domain, partialUrl);
@@ -39,13 +45,12 @@ namespace Mutify.Controllers
         public async Task<ActionResult<List<TrackDto>>> Get()
         {
             var trackDataList = await _GetAll();
-            trackDataList.ForEach(track =>
+
+            foreach (var trackDto in trackDataList)
             {
-                if (track.Id != null)
-                {
-                    track.Url = _mapUrl((int) track.Id);
-                }
-            });
+                trackDto.Url = await _mapUrl(trackDto.Id ?? -1);
+            }
+
             return trackDataList;
         }
 
@@ -58,10 +63,7 @@ namespace Mutify.Controllers
                 return NotFound();
             }
 
-            if (track.Id != null)
-            {
-                track.Url = _mapUrl((int) track.Id);
-            }
+            track.Url = await _mapUrl(track.Id ?? -1);
 
             return Ok(track);
         }
