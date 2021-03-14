@@ -26,6 +26,14 @@ namespace Mutify.Controllers
         public TrackController(MutifyContext context, IMapper mapper) : base(context, mapper)
         {
         }
+        [HttpGet("/test")]
+        public async Task<ActionResult> Test()
+        {
+            return Ok(new
+            {
+                Connected= true
+            });
+        }
 
         // GET
         [HttpGet]
