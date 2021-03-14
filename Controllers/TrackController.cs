@@ -255,7 +255,8 @@ namespace Mutify.Controllers
                     await file.CopyToAsync(memStream);
                     memStream.Position = 0;
 
-                    return File(memStream, MimeTypeMap.GetMimeType(ext));
+                    return File(memStream, MimeTypeMap.GetMimeType(ext), enableRangeProcessing: true
+                    );
                 }
             }
             catch (Exception ex)
