@@ -11,8 +11,6 @@ services:
       - "POSTGRES_PASSWORD=password"
       - "POSTGRES_USER=admin"
       - "POSTGRES_DB=mutify"
-      - "MIGRATE_NEW_DB=0"
-
     volumes:
       - "./DevopsConfig/db:/docker-entrypoint-initdb.d"
       - "shared_data:/app/shared_data"
