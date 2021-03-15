@@ -3,7 +3,7 @@
 
 services:
   db:
-    image: postgres:13.2-alpine
+    image: postgres:12.6-alpine
     restart: on-failure
     ports:
       - "5432:5432"
