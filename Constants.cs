@@ -9,6 +9,7 @@ namespace Mutify
         {
             public static readonly string ResourceFolder = "Resources";
             public static readonly string AudioFolder = "Audio";
+            public static readonly string VideoFolder = "Video";
         }
     }
 }

@@ -16,5 +16,12 @@ namespace Mutify.Helpers
             var resourcePath = Path.Combine(root, Constants.Resource.ResourceFolder);
             return Path.Combine(resourcePath, Constants.Resource.AudioFolder);
         }
+
+        public static string GetVideoPath()
+        {
+            var root = Constants.RootPath;
+            var resourcePath = Path.Combine(root, Constants.Resource.ResourceFolder);
+            return Path.Combine(resourcePath, Constants.Resource.VideoFolder);
+        }
     }
 }

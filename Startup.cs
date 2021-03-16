@@ -52,6 +52,7 @@ namespace Mutify
         {
             var root = Constants.RootPath;
             var resourcePath = Path.Combine(root, Constants.Resource.ResourceFolder);
+            var videoPath = Path.Combine(resourcePath, Constants.Resource.VideoFolder);
             var audioPath = Path.Combine(resourcePath, Constants.Resource.AudioFolder);
 
             if (!Directory.Exists(resourcePath))
@@ -66,6 +67,11 @@ namespace Mutify
                 Directory.CreateDirectory(audioPath);
             }
 
+            if (!Directory.Exists(videoPath))
+            {
+                Console.WriteLine($"Generate {Constants.Resource.VideoFolder} folder");
+                Directory.CreateDirectory(videoPath);
+            }
             Console.WriteLine("Generated folders done!");
         }
 
